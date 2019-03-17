@@ -32,6 +32,10 @@ func (s *Server) Publish(stream pb.HeartBeat_PublishServer) error {
 		msg, err := stream.Recv()
 		if err == nil {
 			fmt.Println(msg)
+			stream.Send(&pb.ReceiveMsg{
+				Timestamp: time.Now().Unix(),
+				Msg:       "agent",
+			})
 		}
 		time.Sleep(time.Second * 3)
 
