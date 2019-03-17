@@ -1,0 +1,17 @@
+
+syntax = "proto3";
+
+// Interface exported by the server.
+service HeartBeat {
+    rpc Publish(stream SendMsg) returns (stream ReceiveMsg) {}
+}
+
+message SendMsg{
+    int64 timestamp=1;
+    string msg=2;
+}
+
+message ReceiveMsg{
+    int64 timestamp=1;
+    string msg=2;
+}
