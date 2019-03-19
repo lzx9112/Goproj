@@ -1,4 +1,4 @@
-package main
+package heartbeat
 
 import (
 	"sync"
@@ -36,17 +36,17 @@ type JobCallback func()
 func (f JobCallback) Run() { f() }
 
 type TaskScheduler struct {
-	tasks  []*Task
+	tasks    []*Task
 	duration time.Duration
-	lock   sync.Mutex
-	stop   chan struct{}
+	lock     sync.Mutex
+	stop     chan struct{}
 }
 
 func NewTaskScheduler() *TaskScheduler {
 	return &TaskScheduler{
-		tasks:  make([]*Task, 0),
+		tasks:    make([]*Task, 0),
 		duration: time.Second,
-		stop:   make(chan struct{}),
+		stop:     make(chan struct{}),
 	}
 }
 
@@ -86,9 +86,6 @@ func (scheduler *TaskScheduler) getTask() *Task {
 
 	length := len(scheduler.tasks)
 	if length == 0 {
-		//return Task{
-		//	addTime: -1,
-		//}
 		return nil
 	}
 	first := scheduler.tasks[0]
@@ -96,16 +93,15 @@ func (scheduler *TaskScheduler) getTask() *Task {
 	return first
 }
 
-func (scheduler *TaskScheduler) run() {
+func (scheduler *TaskScheduler) Run() {
 	for {
 	restart:
 		task := scheduler.getTask()
 		if task == nil || task.AddTime() <= 0 {
-			time.Sleep(time.Second)
+			time.Sleep(scheduler.Duration())
 			continue
 		}
-
-		timer := time.NewTimer(time.Second)
+		timer := time.NewTimer(scheduler.Duration())
 		for {
 			select {
 			case <-timer.C:
