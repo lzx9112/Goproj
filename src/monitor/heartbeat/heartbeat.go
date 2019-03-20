@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"golang.org/x/net/context"
 	hbt "monitor/heartbeat/heartbeat-tunnel"
+	"monitor/scheduler"
 	pb "proto"
 	"time"
 )
@@ -47,7 +48,7 @@ func NewInstance(addr string) *HearbeatClient {
 
 func (hb *HearbeatClient) Start(ctx context.Context) {
 	var agentFailedCount uint64
-	ts := NewTaskScheduler()
+	ts := scheduler.NewScheduler()
 	ts.SetDuration(time.Second)
 	go ts.Run()
 	defer ts.Stop()
@@ -93,6 +94,7 @@ restart:
 			}
 			break
 		case <-ctx.Done():
+			fmt.Println("exit heartbeat")
 			return
 		}
 	}

@@ -38,6 +38,5 @@ func (s *Server) Publish(stream pb.HeartBeat_PublishServer) error {
 			})
 		}
 		time.Sleep(time.Second * 3)
-
 	}
 }

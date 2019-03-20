@@ -1,86 +1,56 @@
-package heartbeat
+package scheduler
 
 import (
 	"sync"
 	"time"
 )
 
-type Job interface {
-	Run()
-}
-
-type Task struct {
-	job     Job
-	addTime int64
-	// 留作扩展
-}
-
-func (t *Task) AddTime() int64 {
-	return t.addTime
-}
-
-func (t *Task) SetAddTime(addTime int64) {
-	t.addTime = addTime
-}
-
-func (t *Task) Job() Job {
-	return t.job
-}
-
-func (t *Task) SetJob(job Job) {
-	t.job = job
-}
-
-type JobCallback func()
-
-func (f JobCallback) Run() { f() }
-
-type TaskScheduler struct {
+type scheduler struct {
 	tasks    []*Task
 	duration time.Duration
 	lock     sync.Mutex
 	stop     chan struct{}
 }
 
-func NewTaskScheduler() *TaskScheduler {
-	return &TaskScheduler{
+func NewScheduler() *scheduler {
+	return &scheduler{
 		tasks:    make([]*Task, 0),
 		duration: time.Second,
 		stop:     make(chan struct{}),
 	}
 }
 
-func (scheduler *TaskScheduler) SetDuration(duration time.Duration) {
+func (scheduler *scheduler) SetDuration(duration time.Duration) {
 	scheduler.duration = duration
 }
 
-func (scheduler *TaskScheduler) Duration() time.Duration {
+func (scheduler *scheduler) Duration() time.Duration {
 	return scheduler.duration
 }
 
-func (scheduler *TaskScheduler) CreateTask(f func()) *Task {
+func (scheduler *scheduler) CreateTask(f func()) *Task {
 	return &Task{
 		job:     JobCallback(f),
 		addTime: time.Now().UnixNano(),
 	}
 }
 
-func (scheduler *TaskScheduler) AddTask(task *Task) {
+func (scheduler *scheduler) AddTask(task *Task) {
 	// 暂时不考虑并发
 	scheduler.lockQ()
 	defer scheduler.unLockQ()
 	scheduler.tasks = append(scheduler.tasks, task)
 }
 
-func (scheduler *TaskScheduler) lockQ() {
+func (scheduler *scheduler) lockQ() {
 	scheduler.lock.Lock()
 }
 
-func (scheduler *TaskScheduler) unLockQ() {
+func (scheduler *scheduler) unLockQ() {
 	scheduler.lock.Unlock()
 }
 
-func (scheduler *TaskScheduler) getTask() *Task {
+func (scheduler *scheduler) getTask() *Task {
 	scheduler.lockQ()
 	defer scheduler.unLockQ()
 
@@ -93,7 +63,7 @@ func (scheduler *TaskScheduler) getTask() *Task {
 	return first
 }
 
-func (scheduler *TaskScheduler) Run() {
+func (scheduler *scheduler) Run() {
 	for {
 	restart:
 		task := scheduler.getTask()
@@ -116,6 +86,6 @@ func (scheduler *TaskScheduler) Run() {
 	}
 }
 
-func (scheduler *TaskScheduler) Stop() {
+func (scheduler *scheduler) Stop() {
 	scheduler.stop <- struct{}{}
 }
