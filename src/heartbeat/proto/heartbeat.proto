@@ -1,0 +1,36 @@
+
+syntax = "proto3";
+
+package mustang;
+
+// Interface exported by the server.
+service Heartbeat {
+    rpc Send(HeartbeatReq) returns (HeartbeatResp);
+    rpc Registry(RegistryReq) returns (RegistryResp);
+}
+
+message HeartbeatReq{
+    int64 timestamp=1;
+    string msg=2;
+    string appName=3;
+    string executePath=4;
+
+}
+
+message HeartbeatResp{
+    int64 timestamp=1;
+    string msg=2;
+}
+
+message RegistryReq{
+    string appName=1;
+    bool enableSelfPreservation=2; //
+    string executePath=3;
+    int64 heartbeatInterval=4; // ms
+    int64 connectTimeout=5; // ms
+    string description=6;
+}
+
+message RegistryResp{
+    bool success=1;
+}
